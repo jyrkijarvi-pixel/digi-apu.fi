@@ -72,7 +72,7 @@
         <label for="voice-a">Rauhon ääni<select id="voice-a"><option value="">Automaattinen ääni</option></select></label>
         <label for="voice-b">Hessun ääni<select id="voice-b"><option value="">Automaattinen ääni</option></select></label>
       </div>
-      <p class="muted">Äänivalinnat toimivat, jos selain tarjoaa vaihtoehtoja. Jos laitteessa on vain yksi suomenkielinen ääni, roolien ero tehdään puhenopeudella ja sävelkorkeudella.</p>
+      <p class="muted">Äänivalinnat toimivat, jos selain tarjoaa vaihtoehtoja. Aluksi molemmat hahmot käyttävät samaa suomenkielistä ääntä, jotta kokeilu toimisi mahdollisimman varmasti. Roolien ero tehdään puhenopeudella ja sävelkorkeudella. Halutessasi voit valita eri äänen.</p>
       <ol class="transcript" id="transcript">
         <li class="line"><strong>Rauho</strong>Morjens! Täälä ei tartte olla mikään tietokonenikkari. Katotaan asia rauhassa.</li>
         <li class="line question"><strong>Hessu</strong>No ny tuli viesti, että pankkitili lukitaan viiden minuutin päästä. Tästäkö mää painan?</li>
@@ -100,11 +100,13 @@
       let voices = [];
       let runId = 0;
       let playing = false;
+      let nextTimer = null;
+      let lastGoodVoice = null;
 
       function setStatus(message) { status.textContent = message; }
       function clearHighlight() { lines.forEach(line => line.classList.remove('active')); }
       function setPlaying(value) { playing = value; play.disabled = value || !supported; stop.disabled = !value; }
-      function finish(message) { playing = false; setPlaying(false); clearHighlight(); setStatus(message); }
+      function finish(message) { clearTimeout(nextTimer); nextTimer = null; playing = false; setPlaying(false); clearHighlight(); setStatus(message); }
       function stopSpeech() { runId++; if (synth) synth.cancel(); finish('Toisto pysäytetty.'); }
       function populateVoices() {
         if (!supported) return;
@@ -119,29 +121,66 @@
         if ([...voiceB.options].some(o => o.value === previousB)) voiceB.value = previousB;
         if (!previousA && !previousB) {
           const finnish = sorted.filter(v => v.lang.toLowerCase().startsWith('fi'));
-          if (finnish[0]) voiceA.value = finnish[0].voiceURI;
-          if (finnish[1]) voiceB.value = finnish[1].voiceURI;
-          else if (finnish[0]) voiceB.value = finnish[0].voiceURI;
+          const reliable = finnish.find(v => v.localService) || finnish[0];
+          if (reliable) voiceA.value = voiceB.value = reliable.voiceURI;
         }
       }
       function getSelectedVoice(selector) { return voices.find(v => v.voiceURI === selector.value) || voices.find(v => v.lang.toLowerCase().startsWith('fi')) || null; }
-      function sayLine(index, id) {
+      function sayLine(index, id, attempt = 0) {
         if (!playing || id !== runId) return;
         if (index >= lines.length) { finish('Keskustelu kuunneltu loppuun.'); return; }
+
+        const isRauho = index % 2 === 0;
+        const speaker = isRauho ? 'Rauho' : 'Hessu';
+        const selected = getSelectedVoice(isRauho ? voiceA : voiceB);
+        const localFinnish = voices.find(v => v.localService && v.lang.toLowerCase().startsWith('fi')) || null;
+        // Käytä ensin valittua ääntä, sitten aiemmin toimivaa ääntä,
+        // paikallista suomenkielistä ääntä ja lopuksi selaimen oletusääntä.
+        const candidates = [];
+        for (const candidate of [selected, lastGoodVoice, localFinnish, null]) {
+          if (!candidates.some(v => (v ? v.voiceURI : null) === (candidate ? candidate.voiceURI : null))) {
+            candidates.push(candidate);
+          }
+        }
+        if (attempt >= candidates.length) {
+          finish('Puhemoottori ei saanut tätä vuorosanaa kuuluviin. Kokeile toista ääntä tai selainta.');
+          return;
+        }
+
         clearHighlight();
         const line = lines[index];
         line.classList.add('active');
-        const speaker = index % 2 === 0 ? 'Rauho' : 'Hessu';
-        const text = line.childNodes[line.childNodes.length - 1].textContent.trim();
-        const utterance = new SpeechSynthesisUtterance(text);
+        const utterance = new SpeechSynthesisUtterance(line.lastChild.textContent.trim());
         utterance.lang = 'fi-FI';
-        utterance.rate = index % 2 === 0 ? 0.87 : 1.04;
-        utterance.pitch = index % 2 === 0 ? 0.91 : 1.14;
-        const voice = getSelectedVoice(index % 2 === 0 ? voiceA : voiceB);
+        utterance.rate = isRauho ? 0.87 : 1.04;
+        utterance.pitch = isRauho ? 0.91 : 1.14;
+        const voice = candidates[attempt];
         if (voice) utterance.voice = voice;
-        utterance.onend = () => { if (id === runId && playing) sayLine(index + 1, id); };
-        utterance.onerror = (event) => { if (id !== runId) return; finish('Puhe keskeytyi (' + (event.error || 'virhe') + '). Kokeile toista ääntä tai selainta.'); };
-        setStatus(`${speaker} puhuu… (${index + 1}/${lines.length})`);
+
+        let handled = false;
+        utterance.onend = () => {
+          if (handled || id !== runId || !playing) return;
+          handled = true;
+          if (voice) lastGoodVoice = voice;
+          // Pieni tauko antaa Edgen/Chromen puhemoottorin vapautua
+          // ennen seuraavan äänen/vuorosanan käynnistämistä.
+          nextTimer = setTimeout(() => sayLine(index + 1, id), 280);
+        };
+        utterance.onerror = event => {
+          if (handled || id !== runId || !playing) return;
+          handled = true;
+          if (event.error === 'not-allowed') {
+            finish('Selain esti puheen. Tarkista selaimen ääni- ja käyttöoikeusasetukset.');
+            return;
+          }
+          if (attempt + 1 < candidates.length) {
+            setStatus(speaker + ': valittu ääni epäonnistui (' + (event.error || 'virhe') + '). Kokeillaan varaääntä…');
+            nextTimer = setTimeout(() => sayLine(index, id, attempt + 1), 380);
+          } else {
+            finish('Puhe keskeytyi (' + (event.error || 'virhe') + '). Kokeile selaimen toista suomenkielistä ääntä.');
+          }
+        };
+        setStatus(speaker + ' puhuu… (' + (index + 1) + '/' + lines.length + ')' + (attempt ? ' – varaääni' : ''));
         synth.speak(utterance);
       }
       if (!supported) {
@@ -150,9 +189,9 @@
       } else {
         populateVoices();
         if ('onvoiceschanged' in synth) synth.addEventListener('voiceschanged', populateVoices);
-        play.addEventListener('click', () => { runId++; synth.cancel(); setPlaying(true); sayLine(0, runId); });
+        play.addEventListener('click', () => { runId++; clearTimeout(nextTimer); synth.cancel(); setPlaying(true); const id = runId; nextTimer = setTimeout(() => sayLine(0, id), 150); });
         stop.addEventListener('click', stopSpeech);
-        window.addEventListener('pagehide', () => { runId++; synth.cancel(); });
+        window.addEventListener('pagehide', () => { runId++; clearTimeout(nextTimer); synth.cancel(); });
       }
     })();
   </script>
