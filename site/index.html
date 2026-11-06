@@ -2,7 +2,7 @@
 <html lang="fi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Digiapua ilman digijargonia · Digi-apu.fi</title><meta name="description" content="Selkeää apua huijausviesteihin, tietokoneen ja puhelimen pulmiin sekä turvalliseen netinkäyttöön.">
 <meta name="referrer" content="no-referrer"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/styles.css?v=9bdbaa25be"><link rel="stylesheet" href="assets/reinikainen.css?v=3"><script src="assets/app.js?v=ad53ecd3b7" defer></script><script src="assets/wisdom.js?v=1" defer></script><script src="assets/reinikainen-voice.js?v=1" defer></script><script src="assets/reinikainen-chat.js?v=2" defer></script></head>
+<link rel="stylesheet" href="assets/styles.css?v=9bdbaa25be"><link rel="stylesheet" href="assets/reinikainen.css?v=3"><script src="assets/app.js?v=ad53ecd3b7" defer></script><script src="assets/wisdom.js?v=1" defer></script><script src="assets/reinikainen-voice.js?v=1" defer></script><script src="assets/reinikainen-brain.js?v=1" defer></script><script src="assets/reinikainen-chat.js?v=3" defer></script></head>
 <body><a class="skip" href="#sisalto">Siirry sisältöön</a>
 <header class="header"><div class="wrap header-inner"><a class="brand" href="index.html" aria-label="Digi-apu.fi, etusivu"><span class="brand-mark" aria-hidden="true">d<span>+</span></span><span>Digi-apu<span class="brand-domain">.fi</span></span></a><nav class="main-nav" aria-label="Päävalikko"><a href="huijausapu.html">Huijausapu</a><a href="digiopastus.html">Digiopastus</a><a href="turvallinen-netti.html">Turvallinen netti</a></nav><button class="text-size" id="text-size" type="button" aria-pressed="false" hidden><span aria-hidden="true">A<span class="big-a">A</span></span> Suurenna tekstiä</button></div></header>
 <div class="urgent"><div class="wrap">Annoitko jo tietoja tai maksoitko? <a href="huijausapu.html#jo-tapahtui">Katso heti toimintaohjeet <span aria-hidden="true">→</span></a></div></div>
@@ -32,9 +32,9 @@
 <section class="wrap reinikainen-chat-section" id="reinikainen-chat" aria-labelledby="reinikainen-chat-title">
 <div class="reinikainen-chat-card">
 <p class="eyebrow">Kysy kirjoittamalla tai puhumalla</p>
-<h2 id="reinikainen-chat-title">Kysypä digi-avustajalta!</h2>
+<h2 id="reinikainen-chat-title">Jyrkin Digi-avustaja – Reinikaisen hengessä</h2>
 <p>Kysy arkisesta digipulmasta omin sanoin. Vastaus tulee aina tekstinä, ja halutessasi myös ääneen. Ei kirjautumista eikä maksua.</p>
-<p class="small"><strong>Hyvä tietää:</strong> Tämä on rajattu, valmiisiin ohjeisiin perustuva keskusteluohjelma, ei vapaa tekoäly tai oikea Reinikainen. Älä kirjoita salasanoja, pankkitunnuksia tai henkilötietoja.</p>
+<p class="small"><strong>Hyvä tietää:</strong> Tämä on Reinikaisen hengessä tehty rajattu opastaja, ei oikea Reinikainen eikä vapaa tekoäly. Se muistaa keskustelun aiheen vain tämän avoimen sivun ajan. Älä kirjoita salasanoja, pankkitunnuksia tai henkilötietoja.</p>
 <div class="reinikainen-chat-log" id="reinikainen-chat-log" role="log" aria-label="Keskustelu" aria-live="polite" aria-relevant="additions text">
 <div class="reinikainen-chat-message helper"><strong>Digi-avustaja</strong><p>No terve! Mikä digipulma mieltä painaa? Kysäise vaikka huijausviestistä, nettiyhteydestä tai puhelimesta.</p></div>
 </div>
@@ -49,7 +49,7 @@
 </form>
 <div class="reinikainen-chat-settings">
 <button id="reinikainen-chat-mic" class="button secondary" type="button" hidden>🎙 Puhu kysymys</button>
-<label><input id="reinikainen-chat-voice" type="checkbox"> Lue vastaukset ääneen</label>
+<label><input id="reinikainen-chat-voice" type="checkbox"> Lue vastaukset ääneen</label><button id="reinikainen-chat-stop" class="button secondary" type="button">■ Pysäytä ääni</button><button id="reinikainen-chat-reset" class="button secondary" type="button">Aloita uusi keskustelu</button>
 </div>
 <p class="small">Mikrofoni käynnistyy vain painikkeesta ja pyytää selaimelta luvan. Selaimen puheentunnistus voi lähettää puhetta selaimen palveluntarjoajalle; älä sanele arkaluonteisia tietoja. Kirjoitettuja kysymyksiä ei lähetetä Digi-apu.fi:n palvelimelle.</p>
 <p class="small" id="reinikainen-chat-status" role="status" aria-live="polite"></p>
