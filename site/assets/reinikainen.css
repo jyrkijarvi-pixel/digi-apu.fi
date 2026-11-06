@@ -24,3 +24,12 @@
 .wisdom-controls .small{font-variant-numeric:tabular-nums;color:var(--muted)}
 @media(max-width:700px){.tribute-card{grid-template-columns:1fr}.tribute-photo{margin:22px 22px 0}.tribute-copy{padding:25px 22px}.tribute{padding-bottom:26px}.wisdom{padding-bottom:35px}.wisdom-card{grid-template-columns:1fr;gap:22px;padding:25px 23px}.wisdom-content{padding-left:18px}.wisdom-quote{min-height:8em}.wisdom-quote p{font-size:1.08rem}.tribute-copy .tribute-lead{font-size:1.15rem}}
 @media print{.tribute,.wisdom{break-inside:avoid}.tribute-copy,.wisdom-card{padding:15pt}.tribute-credit{font-size:9pt}.wisdom-card{display:block}.wisdom-content{margin-top:15pt}.wisdom-quote{min-height:0}.wisdom-controls{display:none}}
+
+.tribute-voice{margin:14px 0 22px;padding:18px 20px;background:#fffefb;border:1px solid var(--line);border-radius:10px}
+.tribute-voice .tribute-voice-script{font-size:1.02rem;font-weight:600;line-height:1.55}
+.tribute-voice-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.tribute-voice-controls .button{min-height:44px}
+.tribute-voice-choice{display:flex;gap:8px;align-items:center;font-size:.85rem}
+.tribute-voice-choice select{max-width:235px;padding:8px;border:1px solid var(--line);border-radius:6px;background:white;color:var(--ink)}
+.tribute-voice .small{font-size:.76rem;margin:8px 0 0}
+@media print{.tribute-voice-controls{display:none}}
