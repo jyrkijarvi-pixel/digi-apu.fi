@@ -55,3 +55,7 @@
 .reinikainen-chat-settings .button{min-height:44px}
 @media(max-width:700px){.reinikainen-chat-card{padding:23px 19px}.reinikainen-chat-log{height:310px;padding:12px}.reinikainen-chat-input-row{flex-wrap:wrap}.reinikainen-chat-input-row input{flex-basis:100%}.reinikainen-chat-input-row .button{width:100%}}
 @media print{.reinikainen-chat-settings,.reinikainen-chat-examples,.reinikainen-chat-form{display:none}.reinikainen-chat-log{height:auto;max-height:none;overflow:visible}}
+
+/* Kiireelliset turvallisuusvastaukset erottuvat ilman pelottelua. */
+.reinikainen-chat-message.helper[data-urgent="true"]{border-left:5px solid #ad4e2d;background:#fff3e7}
+.reinikainen-chat-message.helper[data-urgent="true"] strong{font-weight:750}
