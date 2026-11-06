@@ -37,7 +37,7 @@ const ReinikainenBrain = (() => {
       'soitti pankista', 'sain viestin', 'sain linkin', 'pankista ', 'pankilta ', 'kummallisen viestin', 'oudon viestin');
     const site = has(s, 'tämä sivu', 'tää sivu', 'teidän sivu', 'digi apu', 'digiapu', 'digi avustaja',
       'digi-avustaja', 'digi-apu');
-    const remote = has(s, 'etäyhteys', 'etähallinta', 'anydesk', 'teamviewer',
+    const remote = has(s, 'etäyhteys', 'etäyhteyd', 'etähallin', 'anydesk', 'teamviewer',
       'pääsi koneelle', 'pääsi tietokoneelle', 'hallitsi konetta');
     const unknown = has(s, 'en tiedä', 'en osaa sanoa', 'en ole varma', 'en muista', 'ehkä');
     const followup = has(s, 'mitä nyt', 'mitä teen', 'mitäs nyt', 'entä nyt', 'mitä seuraavaksi',
