@@ -1,156 +1,165 @@
 'use strict';
-// Bounded, free browser-side Q&A. No API calls, tracking, or persistent chat history.
-// Optional microphone dictation may be processed by the visitor's browser speech provider.
+// Jyrkin Digi-avustaja: kirjoitus ja valinnainen puhe käyttävät samaa keskustelutilaa.
 (() => {
   const host = document.getElementById('reinikainen-chat');
-  if (!host) return;
+  const brain = window.ReinikainenBrain;
+  if (!host || !brain) return;
   const form = host.querySelector('form');
   const input = host.querySelector('#reinikainen-chat-input');
   const log = host.querySelector('#reinikainen-chat-log');
   const mic = host.querySelector('#reinikainen-chat-mic');
   const voice = host.querySelector('#reinikainen-chat-voice');
   const status = host.querySelector('#reinikainen-chat-status');
-  const synth = window.speechSynthesis;
+  const voiceSelect = document.getElementById('reinikainen-voice-choice');
+  const synthesis = window.speechSynthesis || null;
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let context = brain.newState();
   let recognition = null;
   let recording = false;
-  const tidy = value => String(value).normalize('NFKC').toLocaleLowerCase('fi-FI').replace(/[^a-z0-9åäö ]/g, ' ').replace(/\s+/g,' ').trim();
-  const links = Object.freeze({
-    scam: ['huijausapu.html#opastus','Avaa huijausapu'],
-    urgent: ['huijausapu.html#jo-tapahtui','Katso kiireelliset toimintaohjeet'],
-    tech: ['digiopastus.html#opastus','Avaa digiopastus'],
-    wifi: ['digiopastus.html#netti','Nettiyhteyden ohje'],
-    phone: ['digiopastus.html#android','Puhelimen ohje'],
-    windows: ['digiopastus.html#windows','Tietokoneen ohje'],
-    password: ['turvallinen-netti.html#salasanat','Salasanojen ohje'],
-    security: ['turvallinen-netti.html#opastus','Turvallisen netin ohje'],
-    about: ['tietoa.html','Tietoa palvelusta']
-  });
-  function answer(raw) {
-    const s = tidy(raw);
-    const has = (...words) => words.some(w => s.includes(w));
-    if (has('maksoin','maksanut','rahat meni','rahaa lähti','pankkitunnuk','korttitiedo','kortin tiedo','pankkitiedo','pankkikortin','korttinumer','hyväksyin maksun','pankkiin kirjautu','tililtä lähti','rahoja hävisi') && (has('annoin','annoimme','kerroin','lähetin','syötin','kirjoitin','paljast','jaoin','luovut','varast','vietiin','vuot','joutui','joudu','maksoin','maksanut','rahat meni','rahaa lähti','hyväksyin','tililtä lähti','rahoja hävisi') || has('pankkitunnuk','korttitiedo','kortin tiedo'))) return [
-      'Nyt ei vitsailla. Jos olet maksanut epäilyttävälle taholle tai pankki- tai korttitietosi ovat voineet paljastua, ota heti yhteys omaan pankkiisi sen virallisesta numerosta tai sovelluksesta. Älä anna tunnuksia täällä.', 'urgent'
-    ];
-    if (has('etäyhteys','etähallinta','anydesk','teamviewer','pääsi koneelle','pääsi tietokoneelle')) return [
-      'Jos tuntematon sai etäyhteyden laitteeseesi, katkaise laitteen verkkoyhteys ja pyydä luotettavaa apua. Jos pankkitietoja on voinut paljastua, ota heti yhteys pankkiisi toisella turvallisella laitteella.', 'urgent'
-    ];
-    if (has('tämä sivu','tää sivu','teidän sivu','digi apu','digiapu','digi-apu') && has('huijau','turvallinen','luotettava','aito','maksaa','maksullinen')) return [
-      'Kas, terve epäilys! Digi-apu.fi on maksuton opastussivusto. Se ei pyydä pankkitunnuksia, salasanoja tai maksua. Varmista silti itse selaimen osoite: digi-apu.fi. Sivuston oma vakuuttelu ei koskaan yksin todista turvallisuutta.', 'about'
-    ];
-    if (has('huijau','epäilyttävä viesti','outo viesti','tekstiviesti','kalastelu','pakettiviesti','huijauspuhelu','epäilyttävä linkki')) return [
-      'Tässä kannattaa käyttää tervettä epäluuloa. Älä avaa linkkiä, lähetä tunnuksia tai maksa kiireessä. Tarkista asia palvelun omasta sovelluksesta tai itse löytämästäsi virallisesta numerosta. Minä en pysty tarkistamaan juuri sinun viestiäsi.', 'scam'
-    ];
-    if (has('salasana','kirjautu','käyttäjätili','tili kaapat','kaksivaiheinen','vahvistuskoodi')) return [
-      'Salasana on kuin kotiavain. Käytä eri palveluissa eri, pitkiä salasanoja ja ota lisävahvistus käyttöön. Jos salasana on paljastunut, vaihda se oikeassa palvelussa luotettavalla laitteella.', 'password'
-    ];
-    if (has('wifi','wi fi','wlan','netti ei','internet ei','reititin','modeemi','verkko ei','yhteys ei','ei pääse nettiin')) return [
-      'Netti taisi lähteä omille teilleen! Tarkista Wi-Fi, lentotila ja oma tuttu verkko. Kokeile toimiiko netti toisella laitteella. Älä paina reitittimen Reset-painiketta hätäpäissäsi.', 'wifi'
-    ];
-    if (has('ääni ei','ei kuulu ää','äänet ei','mikrofoni','mikki ei','kaiutin','kuulok','soundbar')) return [
-      'Ääni voi joskus karata väärään kaiuttimeen. Tarkista äänenvoimakkuus ja mykistys sekä se, mikä kaiutin tai kuuloke on valittuna. Digiopas auttaa rajaamaan pulmaa.', 'tech'
-    ];
-    if (has('puhelin','känny','android','samsung','appi ei','sovellus kaatu')) return [
-      'Puhelinkin saa joskus oman tahtonsa. Tarkista, temppuileeko yksi sovellus vai koko laite. Tavallinen uudelleenkäynnistys voi auttaa, mutta älä palauta tehdasasetuksia sokkona.', 'phone'
-    ];
-    if (has('tietokone','windows','läppäri','näppäimistö','tulostin','kone ei','hidas kone')) return [
-      'Kone saa temppuilla, mutta ei anneta sen määrätä tahtia. Selvitetään ensin, mikä ei toimi. Digioppaassa on turvallisia tarkistuspolkuja tavallisiin tietokonepulmiin.', 'windows'
-    ];
-    if (has('oletko oikea','oletko reinikainen','oletko tekoäly','kuka olet','mikä tämä on','mikä palvelu','mitä osaat','miten toimit')) return [
-      'Terve! Olen Digi-avustaja, Reinikaisen hengessä kirjoitettu ohjelma, en oikea konstaapeli enkä tekoäly. Vastaan valmiilla ohjeilla. En osaa vapaata keskustelua, enkä tunne sinua henkilökohtaisesti.', 'about'
-    ];
-    if (has('kiitos','kiitti','selvä','hyvä juttu')) return [
-      'Eipä kestä! Koneet ovat meitä varten eikä toisinpäin. Kysäise taas, jos joku digihärveli alkaa oikutella.', null
-    ];
-    if (has('hei','terve','moi','päivää','huomenta','iltaa')) return [
-      'No päivää päivää! Mieltäkö painaa huijausviesti, salasana, puhelin, netti vai tietokone? Kysy ihan tavallisilla sanoilla.', null
-    ];
-    return [
-      'Tuohon ei löydy minulta valmista vastausta, enkä ala keksiä omiani. Osaan neuvoa esimerkiksi huijausviesteissä, salasanoissa, puhelimen ja tietokoneen peruspulmissa. Kokeile kertoa ongelma lyhyesti tai avaa Digiopastus.', 'tech'
-    ];
+  let speechToken = 0;
+
+  function stopSpeech() {
+    speechToken += 1;
+    if (synthesis) synthesis.cancel();
   }
-  function message(who, text, key) {
-    const entry = document.createElement('div');
-    entry.className = 'reinikainen-chat-message ' + (who === 'Sinä' ? 'visitor' : 'helper');
-    const name = document.createElement('strong'); name.textContent = who;
-    const paragraph = document.createElement('p'); paragraph.textContent = text;
-    entry.append(name, paragraph);
-    if (key && links[key]) {
-      const a = document.createElement('a'); a.href = links[key][0]; a.textContent = links[key][1] + ' →'; entry.append(a);
+  function appendMessage(who, content, link, tone) {
+    const item = document.createElement('div');
+    item.className = 'reinikainen-chat-message ' + (who === 'Sinä' ? 'visitor' : 'helper');
+    if (tone === 'urgent') item.dataset.urgent = 'true';
+    const name = document.createElement('strong');
+    name.textContent = who;
+    const body = document.createElement('p');
+    body.textContent = content;
+    item.append(name, body);
+    if (link) {
+      const a = document.createElement('a');
+      a.href = link[0];
+      a.textContent = link[1] + ' →';
+      item.append(a);
     }
-    log.append(entry);
-    while (log.children.length > 12) log.firstElementChild.remove();
+    log.append(item);
+    while (log.children.length > 16) log.firstElementChild.remove();
     log.scrollTop = log.scrollHeight;
   }
-  function speak(text) {
-    if (!voice.checked || !synth || !window.SpeechSynthesisUtterance) return;
-    synth.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'fi-FI'; utterance.rate = 0.93; utterance.pitch = 0.92;
-    const options = synth.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('fi'));
-    options.sort((a,b) => Number(/male|mies|harri|matti|pekka|onni|antti|jussi/i.test(b.name)) - Number(/male|mies|harri|matti|pekka|onni|antti|jussi/i.test(a.name)));
-    if (options[0]) utterance.voice = options[0];
+  function chosenVoice() {
+    if (!synthesis) return null;
+    const available = synthesis.getVoices().filter(v => /^fi(?:-|$)/i.test(v.lang));
+    if (!available.length) return null;
+    const choice = voiceSelect && !voiceSelect.disabled
+      ? voiceSelect.options[voiceSelect.selectedIndex] : null;
+    if (choice && choice.textContent) {
+      const matched = available.find(v => choice.textContent.startsWith(v.name + ' ('));
+      if (matched) return matched;
+    }
+    return available.sort((a,b) =>
+      Number(/harri|male|mies|matti|onni|pekka/i.test(b.name)) -
+      Number(/harri|male|mies|matti|onni|pekka/i.test(a.name)))[0];
+  }
+  function say(content) {
+    if (!voice.checked || !synthesis || !window.SpeechSynthesisUtterance) return;
+    stopSpeech();
+    const token = speechToken;
+    const utterance = new SpeechSynthesisUtterance(content);
+    utterance.lang = 'fi-FI';
+    utterance.rate = 0.92;
+    utterance.pitch = 0.92;
+    const selected = chosenVoice();
+    if (selected) utterance.voice = selected;
     utterance.onerror = event => {
-      if (!['interrupted','canceled'].includes(event.error)) status.textContent = 'Puhe ei onnistunut, mutta vastaus näkyy tekstinä.';
+      if (token !== speechToken) return;
+      if (event.error !== 'interrupted' && event.error !== 'canceled') {
+        status.textContent = 'Äänivastaus epäonnistui. Vastaus näkyy tekstinä.';
+      }
     };
-    synth.speak(utterance);
+    synthesis.speak(utterance);
   }
   function submit(raw) {
-    const q = raw.trim().slice(0, 300);
-    if (!q) return;
-    if (synth) synth.cancel();
-    message('Sinä', q);
-    const [text,key] = answer(q);
-    message('Digi-avustaja', text, key);
+    const question = String(raw || '').trim().slice(0,300);
+    if (!question) return;
+    stopSpeech();
+    appendMessage('Sinä', question);
+    const result = brain.respond(question, context);
+    context = result.state;
+    appendMessage('Digi-avustaja', result.text, result.link, result.tone);
     input.value = '';
-    status.textContent = 'Vastaus näkyy keskustelussa.';
-    speak(text);
+    status.textContent = result.tone === 'urgent'
+      ? 'Tärkeä turvallisuusohje. Katso vastaus ja linkki.'
+      : 'Vastaus näkyy keskustelussa.';
+    say(result.text);
   }
   form.addEventListener('submit', event => { event.preventDefault(); submit(input.value); input.focus(); });
   host.querySelectorAll('[data-reinikainen-example]').forEach(button => {
     button.addEventListener('click', () => submit(button.dataset.reinikainenExample));
   });
+  const clearButton = host.querySelector('#reinikainen-chat-reset');
+  if (clearButton) clearButton.addEventListener('click', () => {
+    stopSpeech();
+    if (recording && recognition) recognition.abort();
+    context = brain.newState();
+    log.replaceChildren();
+    appendMessage('Digi-avustaja', 'No terve uudestaan! Aloitetaan puhtaalta pöydältä. Mikäs digipulma mieltä painaa?');
+    input.value = '';
+    status.textContent = 'Keskustelun muistissa ollut aihe tyhjennetty.';
+    input.focus();
+  });
+  const stopButton = host.querySelector('#reinikainen-chat-stop');
+  if (stopButton) stopButton.addEventListener('click', () => {
+    stopSpeech();
+    status.textContent = 'Puhe pysäytetty. Voit jatkaa kirjoittamalla tai puhumalla.';
+  });
   voice.addEventListener('change', () => {
-    if (!voice.checked && synth) synth.cancel();
+    if (!voice.checked) stopSpeech();
     status.textContent = voice.checked ? 'Äänivastaukset päällä.' : 'Vain tekstivastaukset.';
   });
-  if (!synth || !window.SpeechSynthesisUtterance) {
-    voice.checked = false; voice.disabled = true;
+  if (!synthesis || !window.SpeechSynthesisUtterance) {
+    voice.checked = false;
+    voice.disabled = true;
+    if (stopButton) stopButton.hidden = true;
   }
   if (Recognition) {
     mic.hidden = false;
     mic.addEventListener('click', () => {
-      if (recording && recognition) { recognition.stop(); return; }
+      if (recording && recognition) {
+        recognition.stop();
+        return;
+      }
+      // Lopetetaan äänivastaus ennen mikrofonin avaamista, ettei avustaja kuuntele itseään.
+      stopSpeech();
       recognition = new Recognition();
       recognition.lang = 'fi-FI';
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
-      recognition.onresult = event => {
-        const transcript = event.results[0] && event.results[0][0] && event.results[0][0].transcript;
-        if (transcript) { input.value = transcript.slice(0,300); submit(input.value); }
-      };
       recognition.onstart = () => {
         recording = true;
         mic.textContent = '■ Lopeta kuuntelu';
-        status.textContent = 'Mikrofoni kuuntelee. Selaimen puheentunnistus voi lähettää ääntä palveluntarjoajalle.';
+        status.textContent = 'Mikrofoni kuuntelee. Selain voi käsitellä äänen verkkopalvelussa.';
+      };
+      recognition.onresult = event => {
+        const transcript = event.results[0] && event.results[0][0] && event.results[0][0].transcript;
+        if (transcript) {
+          // Tekstiä voi jatkaa aina käsin. Tunnistettu puhe käsitellään samoin kuin kirjoitus.
+          input.value = transcript.slice(0,300);
+          submit(input.value);
+        }
+      };
+      recognition.onerror = event => {
+        if (event.error !== 'aborted') status.textContent =
+          'Puheentunnistus ei onnistunut (' + event.error + '). Kirjoittaminen toimii silti.';
       };
       recognition.onend = () => {
         recording = false;
         mic.textContent = '🎙 Puhu kysymys';
       };
-      recognition.onerror = event => {
-        status.textContent = 'Puheentunnistus ei onnistunut (' + event.error + '). Voit aina kirjoittaa kysymyksen.';
-      };
-      try { recognition.start(); } catch {
-        status.textContent = 'Mikrofoni ei käynnistynyt. Kirjoittaminen toimii silti.';
-      }
+      try { recognition.start(); }
+      catch { status.textContent = 'Mikrofoni ei käynnistynyt. Voit kirjoittaa kysymyksen.'; }
     });
   } else {
     mic.hidden = true;
   }
   window.addEventListener('pagehide', () => {
-    if (recording && recognition) recognition.abort();
-    if (synth) synth.cancel();
+    if (recognition && recording) recognition.abort();
+    stopSpeech();
+    context = brain.newState();
   });
 })();
