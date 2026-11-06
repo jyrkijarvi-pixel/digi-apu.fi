@@ -27,7 +27,7 @@ const ReinikainenBrain = (() => {
     const negatedPayment = has(s, 'en maksanut', 'en ole maksanut', 'en maksanu', 'mitään en maksanut', 'en ehtinyt maksaa') && !has(s, 'mutta maksoin', 'kuitenkin maksoin', 'silti maksoin', 'maksoin jo', 'ehdin maksaa');
     const negatedDisclosure = has(s, 'en antanut', 'en ole antanut') && !has(s, 'mutta annoin', 'silti annoin');
     const payment = has(s, 'maksoin', 'maksanut', 'maksettu', 'maksu meni', 'rahaa lähti', 'rahat meni',
-      'siirsin rahaa', 'tililtä lähti', 'rahat katosi', 'hyväksyin maksun', 'maksoin jo', 'ehdin maksaa', 'maksoin sen', 'maksu lähti');
+      'siirsin rahaa', 'tililtä lähti', 'rahat katosi', 'hyväksyin maksun', 'maksoin jo', 'ehdin maksaa', 'ehdin jo maksaa', 'maksoin sen', 'maksu lähti');
     const bankDetails = has(s, 'pankkitiedo', 'pankkitie', 'pankkitunnu', 'verkkopank', 'korttitiedo',
       'kortin tiedo', 'kortin numer', 'korttinumero', 'luottokortin', 'maksukortin', 'tunnusluku');
     const handedOver = has(s, 'annoin', 'syötin', 'kerroin', 'luovutin', 'lähetin', 'kirjoitin', 'paljastin',
