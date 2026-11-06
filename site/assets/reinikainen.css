@@ -59,3 +59,6 @@
 /* Kiireelliset turvallisuusvastaukset erottuvat ilman pelottelua. */
 .reinikainen-chat-message.helper[data-urgent="true"]{border-left:5px solid #ad4e2d;background:#fff3e7}
 .reinikainen-chat-message.helper[data-urgent="true"] strong{font-weight:750}
+
+/* Oma, Reinikaisen hengessä kirjoitettu sutkaus — ei alkuperäinen tv-repliikki. */
+.tribute-copy .tribute-sutkaus{font-family:Georgia,"Times New Roman",serif;font-size:1.13rem;line-height:1.55;color:var(--ink);border-left:3px solid var(--orange);padding-left:14px;margin:12px 0 20px;font-style:italic}
