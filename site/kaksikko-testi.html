@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Digi-avun kaksikko — puhekokeilu</title>
+  <meta name="description" content="Eristetty, julkaisematon kokeilu Digi-avun kahdesta omasta puhehahmosta.">
+  <style>
+    :root { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #172d39; background: #f3f7f6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; line-height: 1.5; }
+    .page { max-width: 850px; margin: 0 auto; padding: 20px 16px 56px; }
+    a { color: #076a70; }
+    .header { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+    .brand { font-size: 1.15rem; font-weight: 800; letter-spacing: -.03em; }
+    .brand b { color: #087b79; }
+    .tag { border: 1px solid #bad9d4; border-radius: 99px; padding: 4px 12px; font-weight: 700; font-size: .82rem; background: #fff; }
+    .hero { background: #133b46; color: white; border-radius: 24px; padding: clamp(22px, 5vw, 40px); }
+    .eyebrow { color: #a0e3d6; letter-spacing: .12em; text-transform: uppercase; font-size: .75rem; font-weight: 800; }
+    h1 { margin: 8px 0 12px; font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.15; letter-spacing: -.045em; }
+    .hero p { max-width: 660px; margin-bottom: 0; }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; }
+    .person { border: 1px solid #d5e3df; border-radius: 18px; padding: 16px; background: #fff; display: flex; align-items: center; gap: 12px; }
+    .avatar { display: grid; place-items: center; height: 52px; width: 52px; flex: none; border-radius: 50%; font-size: 1.6rem; background: #c5eee2; }
+    .person:nth-child(2) .avatar { background: #ffe8b5; }
+    .person strong, .person small { display: block; }
+    .person small { color: #556a73; }
+    .panel { border: 1px solid #d5e3df; background: white; border-radius: 20px; padding: clamp(18px, 4vw, 28px); margin-top: 16px; }
+    h2 { margin: 0 0 8px; font-size: 1.25rem; }
+    .muted { color: #53656e; font-size: .95rem; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+    button { appearance: none; font: inherit; border: 1px solid #9ab8b5; border-radius: 12px; background: white; color: #17363c; cursor: pointer; font-weight: 700; padding: 12px 18px; }
+    button.primary { background: #0a7772; border-color: #0a7772; color: white; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    button:focus-visible, select:focus-visible { outline: 3px solid #dc8c36; outline-offset: 2px; }
+    .status { margin-top: 12px; font-weight: 650; color: #205a5b; min-height: 1.5em; }
+    .voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+    label { display: block; font-weight: 750; font-size: .92rem; }
+    select { display: block; width: 100%; margin-top: 6px; font: inherit; border: 1px solid #9db8b6; border-radius: 10px; background: white; padding: 11px; }
+    .transcript { padding: 0; margin: 16px 0 0; list-style: none; display: grid; gap: 8px; }
+    .line { padding: 12px 14px; border-radius: 12px; background: #f3f8f7; border-left: 4px solid #b8dcd6; transition: background-color .15s ease; }
+    .line.question { background: #fffbf1; border-left-color: #f2d798; }
+    .line.active { outline: 2px solid #118179; outline-offset: 1px; background: #e0f7ed; }
+    .line strong { display: block; font-size: .84rem; margin-bottom: 3px; }
+    .note { border-top: 1px solid #e4eeee; padding-top: 16px; margin-top: 20px; }
+    .footer { margin-top: 20px; color: #556870; font-size: .88rem; }
+    @media(max-width: 580px) { .pair, .voice-grid { grid-template-columns: 1fr; } .person { padding: 13px; } .hero { border-radius: 18px; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="header"><div class="brand">d<span><b>+</b></span> Digi-apu.fi <span aria-hidden="true">·</span> Äänikokeilu</div><span class="tag">TESTI · Ei julkaistu etusivulla</span></div>
+    <section class="hero" aria-labelledby="title">
+      <div class="eyebrow">Kaksi omaa hahmoa · yksi digineuvo</div>
+      <h1>Morjens! Otetaas asia rauhassa.</h1>
+      <p>Kokeillaan, miltä rauhallinen tamperelainen opastaja ja vähän hätäilevä kyselijä kuulostavat. Ei Reinikaisen ääntä, ei automaattista puhetta.</p>
+    </section>
+    <section class="pair" aria-label="Kokeilun hahmot">
+      <div class="person"><div class="avatar" aria-hidden="true">☕</div><div><strong>Rauho</strong><small>Rauhallinen digiopastaja</small></div></div>
+      <div class="person"><div class="avatar" aria-hidden="true">💬</div><div><strong>Hessu</strong><small>Innokas kyselijä</small></div></div>
+    </section>
+    <section class="panel" aria-labelledby="player-title">
+      <h2 id="player-title">Kohtaus: Kiireellinen pankkiviesti</h2>
+      <p class="muted">Paina Kuuntele. Selain lukee vuorosanat ääneen oman laitteesi puheäänillä. Suomen kielen ja murteen laatu vaihtelee laitteittain.</p>
+      <div class="controls">
+        <button id="play" class="primary" type="button">▶ Kuuntele keskustelu</button>
+        <button id="stop" type="button" disabled>■ Pysäytä</button>
+      </div>
+      <div id="status" class="status" aria-live="polite" role="status">Valmis kokeiltavaksi.</div>
+      <div class="voice-grid">
+        <label for="voice-a">Rauhon ääni<select id="voice-a"><option value="">Automaattinen ääni</option></select></label>
+        <label for="voice-b">Hessun ääni<select id="voice-b"><option value="">Automaattinen ääni</option></select></label>
+      </div>
+      <p class="muted">Äänivalinnat toimivat, jos selain tarjoaa vaihtoehtoja. Jos laitteessa on vain yksi suomenkielinen ääni, roolien ero tehdään puhenopeudella ja sävelkorkeudella.</p>
+      <ol class="transcript" id="transcript">
+        <li class="line"><strong>Rauho</strong>Morjens! Täälä ei tartte olla mikään tietokonenikkari. Katotaan asia rauhassa.</li>
+        <li class="line question"><strong>Hessu</strong>No ny tuli viesti, että pankkitili lukitaan viiden minuutin päästä. Tästäkö mää painan?</li>
+        <li class="line"><strong>Rauho</strong>Älä ny hötkyile. Ei painella viestin linkkiä. Avaa pankin sovellus ihan ite.</li>
+        <li class="line question"><strong>Hessu</strong>Entä jos se viesti sanoo, että on tosi kiire?</li>
+        <li class="line"><strong>Rauho</strong>Silloin vasta kannattaakin pitää pää kylmänä. Huijari tykkää hoppuilusta.</li>
+        <li class="line question"><strong>Hessu</strong>Jaa. Mää taidan keittää kahvit ja tarkistaa asian.</li>
+        <li class="line"><strong>Rauho</strong>Juuri näin. Kahvit saa tulla, mutta tunnuksia ei anneta.</li>
+      </ol>
+      <div class="note"><strong>Muistutus:</strong> Älä avaa epäilyttävän pankkiviestin linkkiä. Tarkista asia itse pankin virallisesta sovelluksesta tai tunnetusta osoitteesta.</div>
+    </section>
+    <p class="footer">Tämä on erillinen kokeilu. Se ei tallenna ääntä, lähetä viestejä palvelimelle tai käytä ulkoista puhe-APIa. Reinikaisen kuvaan tai sivuston varsinaisiin sivuihin ei kosketa.</p>
+  </main>
+  <script>
+    'use strict';
+    (() => {
+      const play = document.getElementById('play');
+      const stop = document.getElementById('stop');
+      const status = document.getElementById('status');
+      const voiceA = document.getElementById('voice-a');
+      const voiceB = document.getElementById('voice-b');
+      const lines = Array.from(document.querySelectorAll('#transcript .line'));
+      const synth = window.speechSynthesis;
+      const supported = Boolean(synth && window.SpeechSynthesisUtterance);
+      let voices = [];
+      let runId = 0;
+      let playing = false;
+
+      function setStatus(message) { status.textContent = message; }
+      function clearHighlight() { lines.forEach(line => line.classList.remove('active')); }
+      function setPlaying(value) { playing = value; play.disabled = value || !supported; stop.disabled = !value; }
+      function finish(message) { playing = false; setPlaying(false); clearHighlight(); setStatus(message); }
+      function stopSpeech() { runId++; if (synth) synth.cancel(); finish('Toisto pysäytetty.'); }
+      function populateVoices() {
+        if (!supported) return;
+        const previousA = voiceA.value, previousB = voiceB.value;
+        voices = synth.getVoices();
+        const sorted = [...voices].sort((a, b) => Number(b.lang.toLowerCase().startsWith('fi')) - Number(a.lang.toLowerCase().startsWith('fi')) || a.name.localeCompare(b.name));
+        for (const select of [voiceA, voiceB]) {
+          select.replaceChildren(new Option('Automaattinen suomenkielinen', ''));
+          sorted.forEach(voice => select.add(new Option(`${voice.name} (${voice.lang})`, voice.voiceURI)));
+        }
+        if ([...voiceA.options].some(o => o.value === previousA)) voiceA.value = previousA;
+        if ([...voiceB.options].some(o => o.value === previousB)) voiceB.value = previousB;
+        if (!previousA && !previousB) {
+          const finnish = sorted.filter(v => v.lang.toLowerCase().startsWith('fi'));
+          if (finnish[0]) voiceA.value = finnish[0].voiceURI;
+          if (finnish[1]) voiceB.value = finnish[1].voiceURI;
+          else if (finnish[0]) voiceB.value = finnish[0].voiceURI;
+        }
+      }
+      function getSelectedVoice(selector) { return voices.find(v => v.voiceURI === selector.value) || voices.find(v => v.lang.toLowerCase().startsWith('fi')) || null; }
+      function sayLine(index, id) {
+        if (!playing || id !== runId) return;
+        if (index >= lines.length) { finish('Keskustelu kuunneltu loppuun.'); return; }
+        clearHighlight();
+        const line = lines[index];
+        line.classList.add('active');
+        const speaker = index % 2 === 0 ? 'Rauho' : 'Hessu';
+        const text = line.childNodes[line.childNodes.length - 1].textContent.trim();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'fi-FI';
+        utterance.rate = index % 2 === 0 ? 0.87 : 1.04;
+        utterance.pitch = index % 2 === 0 ? 0.91 : 1.14;
+        const voice = getSelectedVoice(index % 2 === 0 ? voiceA : voiceB);
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => { if (id === runId && playing) sayLine(index + 1, id); };
+        utterance.onerror = (event) => { if (id !== runId) return; finish('Puhe keskeytyi (' + (event.error || 'virhe') + '). Kokeile toista ääntä tai selainta.'); };
+        setStatus(`${speaker} puhuu… (${index + 1}/${lines.length})`);
+        synth.speak(utterance);
+      }
+      if (!supported) {
+        setStatus('Tämä selain ei tue puhesynteesiä. Kokeile esimerkiksi Edgeä tai Chromea.');
+        play.disabled = true; voiceA.disabled = true; voiceB.disabled = true;
+      } else {
+        populateVoices();
+        if ('onvoiceschanged' in synth) synth.addEventListener('voiceschanged', populateVoices);
+        play.addEventListener('click', () => { runId++; synth.cancel(); setPlaying(true); sayLine(0, runId); });
+        stop.addEventListener('click', stopSpeech);
+        window.addEventListener('pagehide', () => { runId++; synth.cancel(); });
+      }
+    })();
+  </script>
+</body>
+</html>
