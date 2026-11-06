@@ -65,9 +65,11 @@
       <p class="muted">Paina Kuuntele. Selain lukee vuorosanat ääneen oman laitteesi puheäänillä. Suomen kielen ja murteen laatu vaihtelee laitteittain.</p>
       <div class="controls">
         <button id="play" class="primary" type="button">▶ Kuuntele keskustelu</button>
+        <button id="welcome" type="button">▶ Kuuntele tervetulotoivotus</button>
         <button id="stop" type="button" disabled>■ Pysäytä</button>
       </div>
       <div id="status" class="status" aria-live="polite" role="status">Valmis kokeiltavaksi.</div>
+      <p class="muted"><strong>Reinikaisen hengessä, omalla äänellä:</strong> ”Morjens ja tervetuloa Digi-apuun! Ei täällä tartte kaikkia nappuloita tuntea. Katotaan ny ensin, mikä siinä koneessa oikein närästää!” Tämä on itse kirjoitettu tervehdys tavallisella koneäänellä, ei Tenho Saurénin tallenne tai hänen äänensä jäljitelmä.</p>
       <div class="voice-grid">
         <label for="voice-a">Rauhon ääni<select id="voice-a"><option value="">Automaattinen ääni</option></select></label>
         <label for="voice-b">Hessun ääni<select id="voice-b"><option value="">Automaattinen ääni</option></select></label>
@@ -90,6 +92,7 @@
     'use strict';
     (() => {
       const play = document.getElementById('play');
+      const welcome = document.getElementById('welcome');
       const stop = document.getElementById('stop');
       const status = document.getElementById('status');
       const voiceA = document.getElementById('voice-a');
@@ -105,7 +108,7 @@
 
       function setStatus(message) { status.textContent = message; }
       function clearHighlight() { lines.forEach(line => line.classList.remove('active')); }
-      function setPlaying(value) { playing = value; play.disabled = value || !supported; stop.disabled = !value; }
+      function setPlaying(value) { playing = value; play.disabled = value || !supported; welcome.disabled = value || !supported; stop.disabled = !value; }
       function finish(message) { clearTimeout(nextTimer); nextTimer = null; playing = false; setPlaying(false); clearHighlight(); setStatus(message); }
       function stopSpeech() { runId++; if (synth) synth.cancel(); finish('Toisto pysäytetty.'); }
       function populateVoices() {
@@ -183,13 +186,53 @@
         setStatus(speaker + ' puhuu… (' + (index + 1) + '/' + lines.length + ')' + (attempt ? ' – varaääni' : ''));
         synth.speak(utterance);
       }
+      function sayWelcome(id, attempt = 0) {
+        if (!playing || id !== runId) return;
+        const localFinnish = voices.find(v => v.localService && v.lang.toLowerCase().startsWith('fi')) || null;
+        const candidates = [];
+        for (const candidate of [getSelectedVoice(voiceA), lastGoodVoice, localFinnish, null]) {
+          if (!candidates.some(v => (v ? v.voiceURI : null) === (candidate ? candidate.voiceURI : null))) candidates.push(candidate);
+        }
+        if (attempt >= candidates.length) {
+          finish('Tervehdys ei käynnistynyt. Kokeile toista ääntä tai selainta.');
+          return;
+        }
+        clearHighlight();
+        const utterance = new SpeechSynthesisUtterance('Morjens ja tervetuloa Digi-apuun! Ei täällä tartte kaikkia nappuloita tuntea. Katotaan ny ensin, mikä siinä koneessa oikein närästää!');
+        utterance.lang = 'fi-FI';
+        utterance.rate = 0.88;
+        utterance.pitch = 0.95;
+        const voice = candidates[attempt];
+        if (voice) utterance.voice = voice;
+        let handled = false;
+        utterance.onend = () => {
+          if (handled || id !== runId || !playing) return;
+          handled = true;
+          if (voice) lastGoodVoice = voice;
+          finish('Tervetulotoivotus kuunneltu.');
+        };
+        utterance.onerror = event => {
+          if (handled || id !== runId || !playing) return;
+          handled = true;
+          if (event.error === 'not-allowed') { finish('Selain esti äänen toiston.'); return; }
+          if (attempt + 1 < candidates.length) {
+            setStatus('Ääni epäonnistui (' + (event.error || 'virhe') + '). Kokeillaan varaääntä…');
+            nextTimer = setTimeout(() => sayWelcome(id, attempt + 1), 380);
+          } else {
+            finish('Tervetulotoivotus ei onnistunut (' + (event.error || 'virhe') + ').');
+          }
+        };
+        setStatus('Tervetulotoivotus kuuluu…' + (attempt ? ' – varaääni' : ''));
+        synth.speak(utterance);
+      }
       if (!supported) {
         setStatus('Tämä selain ei tue puhesynteesiä. Kokeile esimerkiksi Edgeä tai Chromea.');
-        play.disabled = true; voiceA.disabled = true; voiceB.disabled = true;
+        play.disabled = true; welcome.disabled = true; voiceA.disabled = true; voiceB.disabled = true;
       } else {
         populateVoices();
         if ('onvoiceschanged' in synth) synth.addEventListener('voiceschanged', populateVoices);
         play.addEventListener('click', () => { runId++; clearTimeout(nextTimer); synth.cancel(); setPlaying(true); const id = runId; nextTimer = setTimeout(() => sayLine(0, id), 150); });
+        welcome.addEventListener('click', () => { runId++; clearTimeout(nextTimer); synth.cancel(); setPlaying(true); const id = runId; nextTimer = setTimeout(() => sayWelcome(id), 150); });
         stop.addEventListener('click', stopSpeech);
         window.addEventListener('pagehide', () => { runId++; clearTimeout(nextTimer); synth.cancel(); });
       }
