@@ -29,7 +29,7 @@
   function answer(raw) {
     const s = tidy(raw);
     const has = (...words) => words.some(w => s.includes(w));
-    if (has('maksoin','maksanut','rahat meni','rahaa lähti','pankkitunnuk','korttitiedot','kortin tiedot','hyväksyin maksun','pankkiin kirjautu')) return [
+    if (has('maksoin','maksanut','rahat meni','rahaa lähti','pankkitunnuk','korttitiedo','kortin tiedo','pankkitiedo','pankkikortin','korttinumer','hyväksyin maksun','pankkiin kirjautu','tililtä lähti','rahoja hävisi') && (has('annoin','annoimme','kerroin','lähetin','syötin','kirjoitin','paljast','jaoin','luovut','varast','vietiin','vuot','joutui','joudu','maksoin','maksanut','rahat meni','rahaa lähti','hyväksyin','tililtä lähti','rahoja hävisi') || has('pankkitunnuk','korttitiedo','kortin tiedo'))) return [
       'Nyt ei vitsailla. Jos olet maksanut epäilyttävälle taholle tai pankki- tai korttitietosi ovat voineet paljastua, ota heti yhteys omaan pankkiisi sen virallisesta numerosta tai sovelluksesta. Älä anna tunnuksia täällä.', 'urgent'
     ];
     if (has('etäyhteys','etähallinta','anydesk','teamviewer','pääsi koneelle','pääsi tietokoneelle')) return [
