@@ -24,16 +24,17 @@ const ReinikainenBrain = (() => {
       return { text, link: link ? links[link] : null, tone, state };
     };
     if (!s) return output('Kysy vain. Ei tarvitse osata hienoja sanoja.');
-    const negatedPayment = has(s, 'en maksanut', 'en ole maksanut', 'en maksanu', 'en maksaa', 'en antanut', 'en ole antanut', 'mitään en maksanut');
+    const negatedPayment = has(s, 'en maksanut', 'en ole maksanut', 'en maksanu', 'mitään en maksanut', 'en ehtinyt maksaa') && !has(s, 'mutta maksoin', 'kuitenkin maksoin', 'silti maksoin', 'maksoin jo', 'ehdin maksaa');
+    const negatedDisclosure = has(s, 'en antanut', 'en ole antanut') && !has(s, 'mutta annoin', 'silti annoin');
     const payment = has(s, 'maksoin', 'maksanut', 'maksettu', 'maksu meni', 'rahaa lähti', 'rahat meni',
-      'siirsin rahaa', 'tililtä lähti', 'rahat katosi', 'hyväksyin maksun', 'maksoin jo', 'ehdin maksaa');
+      'siirsin rahaa', 'tililtä lähti', 'rahat katosi', 'hyväksyin maksun', 'maksoin jo', 'ehdin maksaa', 'maksoin sen', 'maksu lähti');
     const bankDetails = has(s, 'pankkitiedo', 'pankkitie', 'pankkitunnu', 'verkkopank', 'korttitiedo',
       'kortin tiedo', 'kortin numer', 'korttinumero', 'luottokortin', 'maksukortin', 'tunnusluku');
     const handedOver = has(s, 'annoin', 'syötin', 'kerroin', 'luovutin', 'lähetin', 'kirjoitin', 'paljastin',
       'varast', 'vuoti', 'vietiin', 'napattiin', 'joutui', 'jäi huijarille');
     const suspicious = has(s, 'huijau', 'huijari', 'epäilyttävä', 'kalastelu', 'tekstiviesti',
       'pakettiviesti', 'outo viesti', 'pankista viesti', 'pankin viesti', 'linkki viestissä',
-      'soitti pankista', 'sain viestin', 'sain linkin');
+      'soitti pankista', 'sain viestin', 'sain linkin', 'pankista ', 'pankilta ', 'kummallisen viestin', 'oudon viestin');
     const site = has(s, 'tämä sivu', 'tää sivu', 'teidän sivu', 'digi apu', 'digiapu', 'digi avustaja',
       'digi-avustaja', 'digi-apu');
     const remote = has(s, 'etäyhteys', 'etähallinta', 'anydesk', 'teamviewer',
@@ -43,8 +44,8 @@ const ReinikainenBrain = (() => {
       'mitä sitten', 'mihin soitan', 'mistä tiedän');
     const adviceBank = 'Nyt jätetään vitsit sikseen. Jos maksoit huijarille tai pankki- tai korttitietosi voivat olla vaarassa, ota heti yhteys omaan pankkiisi sen virallisen numeron tai sovelluksen kautta. Älä hyväksy uusia maksuja äläkä kerro tunnuksia täällä.';
     // Kiireellisen pankkitilanteen tunnistus ennen kaikkea muuta.
-    if (!negatedPayment && (bankDetails && (handedOver || suspicious || state.topic === 'scam')
-      || payment && (suspicious || state.topic === 'scam' || has(s, 'jo', 'huijar', 'väärälle', 'epäilyttävälle')))) {
+    if ((bankDetails && (!negatedDisclosure || suspicious || state.topic === 'scam'))
+      || payment && !negatedPayment && (suspicious || state.topic === 'scam' || has(s, 'jo', 'huijar', 'väärälle', 'epäilyttävälle', 'ehdin'))) {
       return output(adviceBank, 'urgent', 'urgent', 'scam', true);
     }
     if (remote) return output(
@@ -106,7 +107,7 @@ const ReinikainenBrain = (() => {
     if (has(s, 'kiitos', 'kiitti', 'selvä', 'hyvä juttu')) return output(
       'Eipä kestä! Koneet ovat ihmisiä varten, eivät toisinpäin. Kysäise uudestaan, jos digihärveli oikuttelee.',
       null, 'warm', state.topic);
-    if (has(s, 'hei', 'terve', 'moi', 'päivää', 'huomenta', 'iltaa')) return output(
+    if (has(s, 'hei ', 'terve ', 'moi ', 'päivää', 'huomenta', 'iltaa') || s === 'hei' || s === 'terve' || s === 'moi') return output(
       'No päivää päivää! Mitäs digihärveliä tänään selvitetään? Huijausviesti, netti, salasana vai puhelin?',
       null, 'playful', null);
     return output('Tuohon minulla ei ole varmaa valmisohjetta, enkä ala keksiä omiani. Kerro pulma lyhyesti tai avaa Digiopastus. Sinun ei tarvitse osata hienoja sanoja.',
